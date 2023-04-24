@@ -1,5 +1,5 @@
-
-const apiUrl = 'https://utils-fastapi-643c.up.railway.app/api/count/' + String(counterName);
+// v0.1.0 23-04-24
+const apiUrl = 'https://utils-api.vercel.app/api/count/' + String(counterName);
 let result = defaultNumber;
 
 console.log("counterName: " + counterName);
@@ -8,7 +8,7 @@ fetch(apiUrl)
     .then(response => {
         if (!response.ok) {
             updateCounter(result);
-            throw new Error('Network response was not ok');
+            throw new Error('Network response was not: ok');
         }
         return response.json();
     })
@@ -21,7 +21,7 @@ fetch(apiUrl)
         updateCounter(result);
     })
     .catch(error => {
-        updateCounter(result);
         console.error('There was a problem fetching the data:', error);
         console.log(result);
+        updateCounter(result);
     });
