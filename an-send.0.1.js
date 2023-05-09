@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         form.addEventListener("submit", function (event) {
             event.preventDefault();
-            const endpoint = form.getAttribute("endpoint");
             const first = form.querySelector('[name="first"]');
             const last = form.querySelector('[name="last"]');
             const email = form.querySelector('[name="email_address"]');
@@ -22,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const address = form.querySelector('[name="address"]');
             const region = form.querySelector('[name="region"]');
             const country = form.querySelector('[name="country"]');
-            const url = endpoint;
+            const url = form.getAttribute("endpoint");;
             const headers = {
                 "Content-Type": "application/json;charset=UTF-8"
             };
@@ -49,6 +48,11 @@ document.addEventListener("DOMContentLoaded", function () {
                             country: country ? country.value : 'SE',
                         },
                     ],
+                },
+                triggers: {
+                    autoresponse: {
+                        enabled: true
+                    }
                 },
                 "action_network:referrer_data": {
                     source: utmSource ? utmSource.toString() : ""
