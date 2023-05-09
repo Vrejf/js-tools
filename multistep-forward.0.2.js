@@ -1,100 +1,81 @@
-// multistep-forward.0.2.js
-const forwardForms = document.querySelectorAll('[forward="true"]');
-const loadForms = document.querySelectorAll('[load="true"]');
+// an-send.0.1.js
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+const utmSource = urlParams.get('utm_source')
 
-// Forward and save to localStorage:
-if (forwardForms.length > 0) {
-    forwardForms.forEach(function (form) {
-        console.log("Forward this form:" + form.getAttribute("id"));
-        send(form)
-    });
-};
 
-// Load from localStorage:
-if (loadForms.length > 0 && localStorage !== null) {
-    loadForms.forEach(function (form) {
-        console.log("Load data for this form: " + form.getAttribute("id"));
-        receive(form, Object.entries(localStorage));
-    })
-    localStorage.clear();
-};
+document.addEventListener("DOMContentLoaded", function () {
+    const anForms = document.querySelectorAll("[an='true']");
 
-function receive(form, keys) {
-    // create hidden fields
-    keys.forEach(([key, value]) => {
+    anForms.forEach(function (form) {
+        console.log("Send this to Action network :" + form.getAttribute("id"));
 
-        // console.log(`key: ${key}, value: ${value}`);
-        const sanitizedValue = document.createTextNode(value).textContent;
-        const addHtml = `<input type="hidden" id="${key}" name="${key}" value="${sanitizedValue}">`;
-        form.insertAdjacentHTML("afterbegin", addHtml);
 
-    });
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            const first = form.querySelector('[name="first"]');
+            const last = form.querySelector('[name="last"]');
+            const email = form.querySelector('[name="email_address"]');
+            const phone = form.querySelector('[name="phone_number"]');
+            const postalCode = form.querySelector('[name="postal_code"]');
+            const address = form.querySelector('[name="address"]');
+            const region = form.querySelector('[name="region"]');
+            const country = form.querySelector('[name="country"]');
+            const url = form.getAttribute("endpoint");;
+            const headers = {
+                "Content-Type": "application/json;charset=UTF-8"
+            };
 
-    // Update urls
-    const utmParams = new URLSearchParams(window.location.search).toString();
-    const existingRedirectUrl = form.getAttribute('redirect');
-    if (existingRedirectUrl) {
-        const updatedRedirectUrl = existingRedirectUrl + (existingRedirectUrl.includes('?') ? '&' : '?') + utmParams.toString();
-        form.setAttribute('redirect', updatedRedirectUrl);
-        form.setAttribute('data-redirect', updatedRedirectUrl);
-    };
-
-    // Forward UTM to multiple submits
-    const submitElements = form.querySelectorAll('input[data-redirect]');
-
-    submitElements.forEach((submitElement) => {
-        const redirectUrl = submitElement.getAttribute('data-redirect');
-        const updatedRedirectUrl = redirectUrl + (redirectUrl.includes('?') ? '&' : '?') + utmParams.toString();
-        submitElement.setAttribute('data-redirect', updatedRedirectUrl);
-    });
-
-};
-
-function send(form) {
-
-    localStorage.clear();
-    const utmParams = new URLSearchParams(window.location.search);
-    const existingRedirectUrl = form.getAttribute('redirect');
-    const updatedRedirectUrl = existingRedirectUrl + (existingRedirectUrl.includes('?') ? '&' : '?') + utmParams.toString();
-    form.setAttribute('redirect', updatedRedirectUrl);
-    form.setAttribute('data-redirect', updatedRedirectUrl);
-
-    form.addEventListener("change", e => { saveInputs() });
-    form.addEventListener("input", e => { saveInputs() })
-
-    // creates a hidden input with the utm tags
-    const hiddenInput = document.createElement('input');
-    hiddenInput.type = 'hidden';
-    hiddenInput.name = 'utm';
-    hiddenInput.value = utmParams.toString() || 'null';
-    form.appendChild(hiddenInput);
-
-    // Save inputs to localStorage
-    function saveInputs() {
-        const inputs = form.querySelectorAll('form input, form select, form textarea');
-        localStorage.setItem("utm", utmParams.toString());
-        inputs.forEach(input => {
-            if (input.type !== "submit" && input.name) {
-                let value = "";
-                if (input.type === "checkbox" || input.type === "radio") {
-                    if (input.checked) {
-                        value = input.value;
-                    } else {
-                        if (input.type === "checkbox") {
-                            value = "false";
+            const data = {
+                person: {
+                    given_name: first.value,
+                    family_name: last.value,
+                    email_addresses: [
+                        {
+                            address: email.value
                         }
+                    ],
+                    phone_numbers: [
+                        {
+                            number: phone ? phone.value : '',
+                        },
+                    ],
+                    postal_addresses: [
+                        {
+                            postal_code: postalCode ? postalCode.value : '',
+                            address_lines: address ? [address.value] : [''],
+                            region: region ? region.value : '',
+                            country: country ? country.value : 'SE',
+                        },
+                    ],
+                },
+                triggers: {
+                    autoresponse: {
+                        enabled: true
                     }
-                } else {
-                    value = input.value;
+                },
+                "action_network:referrer_data": {
+                    source: utmSource ? utmSource.toString() : ""
                 }
+            };
 
-                if (localStorage.getItem(input.name) !== value && value !== "") {
-                    localStorage.setItem(input.name, value);
-
-                }
-
-            }
+            fetch(url, {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify(data)
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        console.log("done");
+                        form.submit();
+                    } else {
+                        console.log("fail");
+                    }
+                    console.log("always");
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
         });
-
-    };
-};
+    });
+});
