@@ -1,5 +1,4 @@
-// Counter module
-// <issue_start><issue_comment> Uncaught TypeError: ageraCounter.processCounterElement is not a function at HTMLDocument.<issue_comment>
+// Counter module:
 const ageraCounter = (function () {
 
     const apiUrl = "https://utils-api.vercel.app/api/count/"
